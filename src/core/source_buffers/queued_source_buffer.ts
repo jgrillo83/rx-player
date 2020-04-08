@@ -228,7 +228,7 @@ export default class QueuedSourceBuffer<T> {
     this.bufferType = bufferType;
     this._sourceBuffer = sourceBuffer;
     this._queue = [];
-    this._isLocked = false;
+    this._isLocked = true;
     this._pendingTask = null;
     this._lastInitSegment = null;
     this._currentCodec = codec;

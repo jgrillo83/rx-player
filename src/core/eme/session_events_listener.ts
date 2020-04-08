@@ -33,6 +33,7 @@ import {
   mergeMap,
   startWith,
   takeUntil,
+  tap,
   timeout,
 } from "rxjs/operators";
 import {
@@ -279,7 +280,20 @@ function updateSessionWithMessage(
       throw new EncryptedMediaError("KEY_UPDATE_ERROR", reason);
     }),
     mapTo({ type: "session-updated" as const,
-            value: { session, license: message, initData, initDataType } })
+            value: { session, license: message, initData, initDataType } }),
+    tap(() => {
+      (window as any).ISPUSHED = true;
+
+      if ((window as any).SOURCEBUFFERS) {
+        for (let i = (window as any).SOURCEBUFFERS.length - 1;
+             i >= 0;
+             i--)
+        {
+          (window as any).SOURCEBUFFERS[i].unlock();
+          (window as any).SOURCEBUFFERS.splice(i);
+        }
+      }
+    })
   );
 }
 

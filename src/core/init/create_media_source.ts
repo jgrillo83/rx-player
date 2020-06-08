@@ -22,6 +22,7 @@ import {
   mapTo,
   mergeMap,
   take,
+  tap,
 } from "rxjs/operators";
 import {
   clearElementSrc,
@@ -156,6 +157,12 @@ export default function openMediaSource(
   return createMediaSource(mediaElement).pipe(
     mergeMap(mediaSource => {
       return onSourceOpen$(mediaSource).pipe(
+        tap(() => {
+          console.warn("OPENNED, ", mediaSource.readyState);
+          setTimeout(() => {
+            console.warn("OPENNED2, ", mediaSource.readyState);
+          }, 500);
+        }),
         take(1),
         mapTo(mediaSource)
       );

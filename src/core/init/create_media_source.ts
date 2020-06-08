@@ -34,6 +34,8 @@ import isNonEmptyString from "../../utils/is_non_empty_string";
 
 const { onSourceOpen$ } = events;
 
+(window as any).shouldSet = true;
+
 /**
  * Set the media duration in the mediaSource.
  * @param {MediaSource} mediaSource
@@ -45,8 +47,8 @@ export function setDurationToMediaSource(
 ) : void {
   const newDuration = duration === Infinity ? Number.MAX_VALUE :
                                               duration;
-  if (mediaSource.duration !== newDuration) {
-    log.info("Init: Setting duration", newDuration);
+  if ((window as any).shouldSet && mediaSource.duration !== newDuration) {
+    log.info("Init: Setting duration", newDuration, mediaSource.readyState);
     mediaSource.duration = newDuration;
   }
 }

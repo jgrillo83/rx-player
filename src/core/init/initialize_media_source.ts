@@ -279,6 +279,8 @@ export default function InitializeOnMediaSource(
     mergeMap(([parsedManifest, initialMediaSource]) => {
       const manifest = parsedManifest.manifest;
 
+      console.warn("!!!!", initialMediaSource.readyState);
+
       log.debug("Init: Calculating initial time");
       const initialTime = getInitialTime(manifest, lowLatencyMode, startAt);
       log.debug("Init: Initial time calculated:", initialTime);

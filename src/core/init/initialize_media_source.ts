@@ -217,10 +217,6 @@ export default function InitializeOnMediaSource(
    * The MediaSource will be closed on unsubscription.
    */
   const openMediaSource$ = openMediaSource(mediaElement).pipe(
-    tap((ms) => {
-      /* tslint:disable no-console */
-      console.warn("JUSTE APRES L'EVENT OPEN DU MEDIASOURCE", ms.readyState);
-    }),
     deferSubscriptions(),
     share());
 
@@ -262,24 +258,7 @@ export default function InitializeOnMediaSource(
                                                 openMediaSource$,
                                                 waitForEMEReady$]).pipe(
     mergeMap(([parsedManifest, initialMediaSource]) => {
-
-      if (initialMediaSource.readyState !== "open") {
-        console.warn("OK il est fermé... Je le ré-ouvre");
-        return openMediaSource(mediaElement).pipe(
-          map(mediaSource =>
-            [parsedManifest, mediaSource] as [IManifestFetcherParsedResult,
-                                              MediaSource])
-        );
-      }
-      return observableOf(
-        [parsedManifest, initialMediaSource] as [IManifestFetcherParsedResult,
-                                              MediaSource]);
-    }),
-
-    mergeMap(([parsedManifest, initialMediaSource]) => {
       const manifest = parsedManifest.manifest;
-
-      console.warn("!!!!", initialMediaSource.readyState);
 
       log.debug("Init: Calculating initial time");
       const initialTime = getInitialTime(manifest, lowLatencyMode, startAt);

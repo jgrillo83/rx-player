@@ -136,8 +136,6 @@ function createMediaSource(
     log.info("Init: Attaching MediaSource URL to the media element", objectURL);
     mediaElement.src = objectURL;
 
-    (window as any).MSource = mediaSource;
-
     observer.next(mediaSource);
     return () => {
       resetMediaSource(mediaElement, mediaSource, objectURL);

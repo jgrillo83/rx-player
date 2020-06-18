@@ -212,22 +212,12 @@ export default function InitializeOnMediaSource(
   /** Choose the right "Representation" for a given "Adaptation". */
   const abrManager = new ABRManager(adaptiveOptions);
 
-  /**
-   * Create and open a new MediaSource object on the given media element.
-   * The MediaSource will be closed on unsubscription.
-   */
-  const openMediaSource$ = openMediaSource(mediaElement).pipe(
-    deferSubscriptions(),
-    share());
-
   /** Send content protection data to the `EMEManager`. */
   const protectedSegments$ = new Subject<IContentProtection>();
 
   /** Create `EMEManager`, an observable which will handle content DRM. */
-  const emeManager$ = openMediaSource$.pipe(
-    mergeMap(() => createEMEManager(mediaElement, keySystems, protectedSegments$)),
-    deferSubscriptions(),
-    share());
+  const emeManager$ = createEMEManager(mediaElement, keySystems, protectedSegments$)
+    .pipe(deferSubscriptions(), share());
 
   /**
    * Translate errors coming from the media element into RxPlayer errors
@@ -255,8 +245,9 @@ export default function InitializeOnMediaSource(
 
   /** Load and play the content asked. */
   const loadContent$ = observableCombineLatest([initialManifest$,
-                                                openMediaSource$,
-                                                waitForEMEReady$]).pipe(
+                                                waitForEMEReady$.pipe(mergeMap(() =>
+                                                  openMediaSource(mediaElement))),
+                                               ]).pipe(
     mergeMap(([parsedManifest, initialMediaSource]) => {
       const manifest = parsedManifest.manifest;
 

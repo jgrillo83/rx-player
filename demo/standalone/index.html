@@ -6,14 +6,72 @@
       <title>RxPlayer - CANAL+ (stand-alone demo)</title>
     </head>
     <body>
-      <video id="video"></video>
+      <video id="video" height="270px" width="480px"></video>
       <script type="text/javascript" src="./lib.js" charset="utf-8"></script>
       <script charset="utf-8">
+        const url = "https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-dash-playready.ism/.mpd";
+        const licenseServerUrl = "https://test.playready.microsoft.com/service/rightsmanager.asmx?PlayRight=1&UseSimpleNonPersistentLicense=1";
+
+        window.RxPlayer.LogLevel = "DEBUG";
         const player = new window.RxPlayer({
           videoElement: document.getElementById("video")
         });
-
         window.player = player;
+
+        function formatPlayreadyChallenge(challenge) {
+          let str = "";
+          const len = bytes.length;
+          for (let i = 0; i < len; i += 2) {
+            str += String.fromCharCode(bytes[i]);
+          }
+          const match = /<Challenge encoding="base64encoded">(.*)<\/Challenge>/.exec(str);
+          const xml = match ?
+            atob(match[1]) : /* IE11 / EDGE */
+            String.fromCharCode.apply(null, new Uint8Array(challenge)); // Chromecast
+          return xml;
+        }
+
+        function strToBytes(str) {
+          const len = str.length;
+          const arr = new Uint8Array(len);
+          for (let i = 0; i < len; i += 1) {
+            arr[i] = str.charCodeAt(i) & 0xFF;
+          }
+          return arr;
+        }
+
+        function getLicense(rawChallenge) {
+          const challenge = formatPlayreadyChallenge(rawChallenge);
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", licenseServerUrl, true);
+          return new Promise((resolve, reject) => {
+            xhr.onerror = (err) => {
+              const error = new Error("getLicense's request failed on an error: " + err);
+              reject(error);
+            };
+            xhr.onload = (evt) => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                const license = evt.target.response;
+                resolve(license);
+              } else {
+                const error = new Error("getLicense's request finished with a " +
+                                        `${xhr.status} HTTP error`);
+                reject(error);
+              }
+            };
+            xhr.setRequestHeader("content-type", "text/xml; charset=utf-8");
+            xhr.send(challenge);
+          }).then(license => license === "string" ? strToBytes(license) : license);
+        };
+
+        // Load and play
+        player.loadVideo({ url,
+                           transport: "dash",
+                           autoPlay: true,
+                           keySystems: [{ type: "com.microsoft.playready",
+                                          persistentStateRequired: true,
+                                          distinctiveIdentifierRequired: true,
+                                          getLicense } ] });
       </script>
     </body>
 

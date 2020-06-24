@@ -19,26 +19,24 @@ import {
   ValueParser,
 } from "./utils";
 
-export interface IParsedStreamEventData { type: "dash-event-stream";
-                                          value: { schemeIdUri: string;
-                                                   timescale: number;
-                                                   element: Element; }; }
+export interface IParsedDASHStreamEventData { type: "dash-event-stream";
+                                              value: { schemeIdUri: string;
+                                                       timescale: number;
+                                                       element: Element; }; }
 
-export interface IParsedStreamEvent {
-  eventPresentationTime: number;
-  duration?: number;
-  timescale: number;
-  id?: string;
-  data: IParsedStreamEventData;
-}
+export interface IParsedDASHStreamEvent { eventPresentationTime: number;
+                                          duration?: number;
+                                          timescale: number;
+                                          id?: string;
+                                          data: IParsedDASHStreamEventData; }
 
 /**
  * Parse the EventStream node to extract Event nodes and their
  * content.
  * @param {Element} element
  */
-function parseEventStream(element: Element): [IParsedStreamEvent[], Error[]] {
-  const streamEvents: IParsedStreamEvent[] = [];
+function parseEventStream(element: Element): [IParsedDASHStreamEvent[], Error[]] {
+  const streamEvents: IParsedDASHStreamEvent[] = [];
   const attributes: { schemeId?: string;
                       timescale: number;
                       value?: string; } = { timescale: 1 };
@@ -66,7 +64,7 @@ function parseEventStream(element: Element): [IParsedStreamEvent[], Error[]] {
 
   for (let k = 0; k < element.childNodes.length; k++) {
     const node = element.childNodes[k];
-    const streamEvent: IParsedStreamEvent =
+    const streamEvent: IParsedDASHStreamEvent =
       { id: undefined,
         eventPresentationTime: 0,
         duration: undefined,

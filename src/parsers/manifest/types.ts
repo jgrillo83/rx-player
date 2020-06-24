@@ -15,7 +15,13 @@
  */
 
 import { IRepresentationIndex } from "../../manifest";
-import { IParsedStreamEventData } from "./dash/node_parsers/EventStream";
+import { IEMSG } from "../containers/isobmff/utils";
+import { IParsedDASHStreamEventData } from "./dash/node_parsers/EventStream";
+
+export interface IParsedEMSGData { type: "isobmff-emsg";
+                                   value: IEMSG; }
+
+export type IParsedStreamEventData = IParsedDASHStreamEventData | IParsedEMSGData;
 
 export interface IManifestStreamEvent { start: number;
                                         end?: number;

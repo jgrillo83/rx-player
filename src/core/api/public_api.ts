@@ -85,6 +85,7 @@ import Manifest, {
   Representation,
 } from "../../manifest";
 import { IBifThumbnail } from "../../parsers/images/bif";
+import { IParsedStreamEventData } from "../../parsers/manifest";
 import {
   clearEMESession,
   disposeEME,
@@ -167,11 +168,11 @@ interface IBitrateEstimate {
   bitrate : number | undefined;
 }
 
-export type IStreamEvent = { data: IStreamEventData;
+export type IStreamEvent = { data: IParsedStreamEventData;
                              start: number;
                              end: number;
                              onExit?: () => void; } |
-                           { data: IStreamEventData;
+                           { data: IParsedStreamEventData;
                              start: number; };
 
 /** Every events sent by the RxPlayer's public API. */

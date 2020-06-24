@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { IParsedStreamEventData } from "../../../parsers/manifest";
+
 export interface IStreamEventData {
   type: "dash-event-stream";
   value: { schemeIdUri: string;
@@ -25,26 +27,26 @@ export interface IStreamEventPayload {
   id?: string;
   start: number;
   end: number;
-  data: IStreamEventData;
+  data: IParsedStreamEventData;
   publicEvent: IPublicStreamEvent;
 }
 
 export interface INonFiniteStreamEventPayload {
   id?: string;
   start: number;
-  data: IStreamEventData;
+  data: IParsedStreamEventData;
   publicEvent: IPublicNonFiniteStreamEvent;
 }
 
 /** The `value` of the event actually sent for an event with no associated end. */
 export interface IPublicNonFiniteStreamEvent {
-  data: IStreamEventData;
+  data: IParsedStreamEventData;
   start: number;
 }
 
 /** The `value` of the event actually sent for an event with an associated end. */
 export interface IPublicStreamEvent {
-  data: IStreamEventData;
+  data: IParsedStreamEventData;
   start: number;
   end: number;
   onExit?: () => void;

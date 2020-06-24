@@ -22,7 +22,7 @@ import parseBaseURL, {
   IBaseURL
 } from "./BaseURL";
 import parseEventStream, {
-  IParsedStreamEvent
+  IParsedDASHStreamEvent
 } from "./EventStream";
 import {
   parseBoolean,
@@ -40,7 +40,7 @@ export interface IPeriodChildren {
   // required
   adaptations : IAdaptationSetIntermediateRepresentation[];
   baseURLs : IBaseURL[];
-  streamEvents? : IParsedStreamEvent[];
+  streamEvents? : IParsedDASHStreamEvent[];
 }
 
 // intermediate representation for a Period's attributes

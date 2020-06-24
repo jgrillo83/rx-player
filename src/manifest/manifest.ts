@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
+import areSameStreamEvents from "../core/init/stream_events_emitter/are_same_stream_events";
 import { ICustomError } from "../errors";
-import { IParsedManifest } from "../parsers/manifest";
+import {
+  IManifestStreamEvent,
+  IParsedManifest,
+} from "../parsers/manifest";
 import areArraysOfNumbersEqual from "../utils/are_arrays_of_numbers_equal";
 import arrayFind from "../utils/array_find";
 import { isABEqualBytes } from "../utils/byte_parsing";
@@ -503,6 +507,26 @@ export default class Manifest extends EventEmitter<IManifestEvents> {
     /* tslint:disable:deprecation */
     return arrayFind(this.getAdaptations(), ({ id }) => wantedId === id);
     /* tslint:enable:deprecation */
+  }
+
+  public _addStreamEvents(streamEvents: IManifestStreamEvent[]): void {
+    let hasUpdated = false;
+    for (let i = 0; i < streamEvents.length; i++) {
+      const streamEvent = streamEvents[i];
+      const period = this.getPeriodForTime(streamEvent.start);
+      if (period !== undefined) {
+        const oldStreamEvent = arrayFind(period.streamEvents, (se) => {
+          return areSameStreamEvents(se, streamEvent);
+        });
+        if (oldStreamEvent === undefined) {
+            period.streamEvents.push(streamEvent);
+            hasUpdated = true;
+        }
+      }
+    }
+    if (hasUpdated) {
+      this.trigger("manifestUpdate", null);
+    }
   }
 
   /**

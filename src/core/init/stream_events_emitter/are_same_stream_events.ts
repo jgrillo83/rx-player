@@ -30,13 +30,16 @@
  */
 function areSameStreamEvents(evt1: { id?: string;
                                      start: number;
-                                     end?: number; },
+                                     end?: number;
+                                     data: { type: string }; },
                              evt2: { id?: string;
                                      start: number;
-                                     end?: number; }): boolean {
+                                     end?: number;
+                                     data: { type: string }; }): boolean {
   return evt1.id === evt2.id &&
          evt1.start === evt2.start &&
-         evt1.end === evt2.end;
+         evt1.end === evt2.end &&
+         evt1.data.type === evt2.data.type;
 }
 
 export default areSameStreamEvents;

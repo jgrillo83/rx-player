@@ -66,8 +66,8 @@ function getMDIA(buf : Uint8Array) : Uint8Array|null {
  * @param {Uint8Array} buffer
  * @returns {Uint8Array|null}
  */
-function getEMSG(buffer: Uint8Array) : Uint8Array|null {
-  const emsg = getBoxContent(buffer, 0x656D7367 /* emsg */);
+function getEMSG(buffer: Uint8Array, offset = 0) : Uint8Array|null {
+  const emsg = getBoxContent(buffer.subarray(offset), 0x656D7367 /* emsg */);
   if (emsg === null) {
     return null;
   }

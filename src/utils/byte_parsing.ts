@@ -369,6 +369,31 @@ function isABEqualBytes(buffer : ArrayBuffer, bytes : Uint8Array) : boolean {
   return true;
 }
 
+/**
+ * Decode string from bytes (UTF-8).
+ * Keeps reading until it reaches a byte that equals to zero.
+ * @param {Uint8Array} buffer
+ * @param {number} offset
+ * @returns {Object}
+ */
+function readTerminatedString(buffer: Uint8Array, offset: number): {
+  end: number;
+  string: string;
+} {
+  let position = offset;
+  while (position < buffer.length) {
+    const value = buffer[position];
+    if (value === 0) {
+      break;
+    }
+    position += 1;
+  }
+
+  const bytes = new Uint8Array(buffer.buffer, offset, position - offset);
+  return { end: position + 1,
+           string: new TextDecoder().decode(bytes) };
+}
+
 export {
   strToBytes, strToUTF16Array,
   bytesToStr, bytesToUTF16Str,
@@ -380,5 +405,6 @@ export {
   itobe2, itobe4, itobe8,
   itole2, itole4,
   guidToUuid,
+  readTerminatedString,
   isABEqualBytes,
 };

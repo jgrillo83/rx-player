@@ -29,10 +29,12 @@ import {
 import { createBox } from "./create_box";
 import { getPlayReadyKIDFromPrivateData } from "./drm";
 import {
-  getEMSG,
   getMDIA,
   getTRAF,
 } from "./read";
+
+import { bytesToBase64 } from "../../../utils/base64";
+import { getBoxOffsets } from "./get_box";
 
 export interface IEMSG { schemeId: string;
                          value: string;
@@ -423,16 +425,16 @@ function patchPssh(buf : Uint8Array, pssList : IISOBMFFKeySystem[]) : Uint8Array
  */
 function parseEmsgBoxes(buffer: Uint8Array) : IEMSG[] {
   const emsgs: IEMSG[] = [];
-  let offset = 0;
-  while (offset < buffer.length) {
-    const emsg = getEMSG(buffer, offset);
-    if (emsg === null) {
+  let currentBuffer = buffer;
+  while (currentBuffer.length > 0) {
+    const offsets = getBoxOffsets(currentBuffer, 0x656D7367 /* emsg */);
+    if (offsets === null) {
       return emsgs;
     }
-    const length = emsg.length;
-    offset += length;
+    const emsg = currentBuffer.subarray(offsets[0], offsets[1]);
+    currentBuffer = currentBuffer.subarray(offsets[1]);
 
-    let position = 4; // skip version + flags
+    let position = 4 + 4 + 4; // skip size + name + version + flags
 
     const { end: schemeIdEnd, string: schemeId } = readTerminatedString(emsg, position);
     position = schemeIdEnd; // skip schemeId
@@ -452,7 +454,7 @@ function parseEmsgBoxes(buffer: Uint8Array) : IEMSG[] {
     const id = be4toi(emsg, position);
     position += 4; // skip id
 
-    const messageData = emsg.subarray(position, length);
+    const messageData = emsg.subarray(position);
 
     const emsgData = { schemeId,
                        value,
@@ -460,7 +462,8 @@ function parseEmsgBoxes(buffer: Uint8Array) : IEMSG[] {
                        presentationTimeDelta,
                        eventDuration,
                        id,
-                       messageData };
+                       messageData,
+                       messageDataBase64: bytesToBase64(messageData) };
     emsgs.push(emsgData);
   }
   return emsgs;

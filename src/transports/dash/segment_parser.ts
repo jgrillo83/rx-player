@@ -40,7 +40,7 @@ export default function parser(
                                                ArrayBuffer |
                                                null >
 ) : IAudioVideoParserObservable {
-  const { period, representation, segment, manifest } = content;
+  const { period, representation, segment } = content;
   const { data, isChunked } = response;
   const appendWindow : [number, number | undefined] = [ period.start, period.end ];
 
@@ -66,20 +66,26 @@ export default function parser(
   if (!isWEBM) {
     const emsgs = parseEmsgBoxes(chunkData);
     if (emsgs.length > 0) {
-      const streamEvents = emsgs.map((emsg) => {
-        const start = (emsg.presentationTimeDelta / emsg.timescale) +
-                      segment.time / segment.timescale;
-        const duration = emsg.eventDuration / emsg.timescale;
-        const end = start + duration;
-        const id = emsg.id.toString();
-        const streamEvent = { start,
-                              end,
-                              id,
-                              data: { type: "isobmff-emsg" as const,
-                                      value: emsg } };
-        return streamEvent;
-      });
-      manifest._addStreamEvents(streamEvents);
+      if (content.adaptation.type !== "video" || segment.isInit) {
+        console.error("received emsg for ", content.adaptation.type);
+      } else {
+        const streamEvents = emsgs.map((emsg) => {
+          const start = (emsg.presentationTimeDelta / emsg.timescale) +
+            segment.time / segment.timescale;
+          const duration = emsg.eventDuration / emsg.timescale;
+          const end = start + duration;
+          const id = emsg.id.toString();
+          const streamEvent = { start,
+            end,
+            id,
+            data: { type: "isobmff-emsg" as const,
+              value: emsg } };
+          return streamEvent;
+        });
+        console.log("emsg detected:", streamEvents);
+      }
+    } else if (!segment.isInit && content.adaptation.type === "video") {
+      console.error("No event on a non-init video segment");
     }
   }
 

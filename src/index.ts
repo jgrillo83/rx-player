@@ -23,13 +23,13 @@
 
 import Player from "./core/api";
 import initializeFeatures from "./features/initialize_features";
-import logger from "./log";
+// import logger from "./log";
 
 // set initial features according to environment variables
 initializeFeatures();
 
-if (__DEV__) {
-  logger.setLevel(__LOGGER_LEVEL__);
-}
+// if (__DEV__) {
+//   logger.setLevel(__LOGGER_LEVEL__);
+// }
 
 export default Player;

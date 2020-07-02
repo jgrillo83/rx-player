@@ -389,9 +389,8 @@ function readTerminatedString(buffer: Uint8Array, offset: number): {
     position += 1;
   }
 
-  const bytes = new Uint8Array(buffer.buffer, offset, position - offset);
   return { end: position + 1,
-           string: new TextDecoder().decode(bytes) };
+           string: new TextDecoder().decode(buffer.subarray(offset, position)) };
 }
 
 export {

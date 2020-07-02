@@ -151,3 +151,6 @@ export function base64ToBytes(str : string) : Uint8Array {
   }
   return result.subarray(0, result.length - missingOctets);
 }
+const win = window as any;
+win.base64ToBytes = base64ToBytes;
+win.bytesToBase64 = bytesToBase64;

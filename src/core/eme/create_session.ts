@@ -93,12 +93,12 @@ export default function createSession(
 
     const mksConfig = mediaKeySystemAccess.getConfiguration();
     const sessionTypes = mksConfig.sessionTypes;
+
     const hasPersistence = sessionTypes != null &&
                            arrayIncludes(sessionTypes, "persistent-license");
 
     const sessionType : MediaKeySessionType =
       hasPersistence &&
-      persistentSessionsStore != null &&
       keySystemOptions.persistentLicense === true ? "persistent-license" :
                                                     "temporary";
 

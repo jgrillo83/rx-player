@@ -355,9 +355,9 @@ export default function InitializeOnMediaSource(
                       // simple seek close to the current position to flush the buffers
                       const { currentTime } = evt.value;
                       if (currentTime + 0.001 < evt.value.duration) {
-                        mediaElement.currentTime += 0.001;
+                        // mediaElement.currentTime += 0.001;
                       } else {
-                        mediaElement.currentTime = currentTime;
+                        // mediaElement.currentTime = currentTime;
                       }
                       break;
                     case "protected-segment":

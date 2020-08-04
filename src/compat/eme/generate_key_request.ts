@@ -24,7 +24,6 @@ import {
   concat,
 } from "../../utils/byte_parsing";
 import castToObservable from "../../utils/cast_to_observable";
-import { isIEOrEdge } from "../browser_detection";
 import { PSSH_TO_INTEGER } from "./constants";
 import { ICustomMediaKeySession } from "./custom_media_keys";
 
@@ -92,7 +91,7 @@ export function patchInitData(initData : Uint8Array) : Uint8Array {
     throw new Error("Compat: unrecognized initialization data. Cannot patch it.");
   }
 
-  return concat(resInitData, cencs);
+  return resInitData;
 }
 
 /**
@@ -114,16 +113,7 @@ export default function generateKeyRequest(
 ) : Observable<unknown> {
   return observableDefer(() => {
     log.debug("Compat: Calling generateRequest on the MediaKeySession");
-    let patchedInit : Uint8Array;
-    if (isIEOrEdge) {
-      try {
-        patchedInit = patchInitData(initData);
-      } catch (_e) {
-        patchedInit = initData;
-      }
-    } else {
-      patchedInit = initData;
-    }
+    const patchedInit = patchInitData(initData);
     return castToObservable(session.generateRequest(initDataType == null ? "" :
                                                                            initDataType,
                                                     patchedInit));

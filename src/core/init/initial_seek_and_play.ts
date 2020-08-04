@@ -128,7 +128,7 @@ function autoPlay$(
 export default function seekAndLoadOnMediaEvents(
   { clock$,
     mediaElement,
-    startTime,
+    // startTime,
     mustAutoPlay,
     isDirectfile } : { clock$ : Observable<IInitClockTick>;
                        isDirectfile : boolean;
@@ -139,9 +139,9 @@ export default function seekAndLoadOnMediaEvents(
   const seek$ = whenLoadedMetadata$(mediaElement).pipe(
     take(1),
     tap(() => {
-      log.info("Init: Set initial time", startTime);
-      mediaElement.currentTime = typeof startTime === "function" ? startTime() :
-                                                                   startTime;
+      // log.info("Init: Set initial time", startTime);
+      // mediaElement.currentTime = typeof startTime === "function" ? startTime() :
+      //                                                              startTime;
     }),
     shareReplay({ refCount: true })
   );

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// import log from "../../log";
+import log from "../../log";
 
 /**
  * Handle discontinuity against current time and stall status
@@ -26,6 +26,6 @@ export default function handleDiscontinuity(seekTo: number,
   if (seekTo < mediaElement.currentTime) {
     return;
   }
-  // log.warn("Init: discontinuity seek", mediaElement.currentTime, seekTo);
-  // mediaElement.currentTime = seekTo;
+  log.warn("Init: discontinuity seek", mediaElement.currentTime, seekTo);
+  mediaElement.currentTime = seekTo;
 }

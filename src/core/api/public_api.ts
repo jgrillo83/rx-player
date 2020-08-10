@@ -1360,7 +1360,7 @@ class Player extends EventEmitter<IPublicAPIEvent> {
     if (positionWanted === undefined) {
       throw new Error("invalid time given");
     }
-    // this.videoElement.currentTime = positionWanted;
+    this.videoElement.currentTime = positionWanted;
     return positionWanted;
   }
 

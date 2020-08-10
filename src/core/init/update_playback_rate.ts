@@ -26,7 +26,7 @@ import {
   switchMap,
   tap,
 } from "rxjs/operators";
-// import log from "../../log";
+import log from "../../log";
 import { IInitClockTick } from "./types";
 
 export interface IPlaybackRateOptions { pauseWhenStalled? : boolean; }
@@ -45,7 +45,7 @@ export interface IPlaybackRateOptions { pauseWhenStalled? : boolean; }
  * @returns {Observable}
  */
 export default function updatePlaybackRate(
-  _mediaElement : HTMLMediaElement,
+  mediaElement : HTMLMediaElement,
   speed$ : Observable<number>,
   clock$ : Observable<IInitClockTick>,
   { pauseWhenStalled = true } : IPlaybackRateOptions
@@ -67,15 +67,15 @@ export default function updatePlaybackRate(
     .pipe(switchMap(shouldForcePause => {
       if (shouldForcePause) {
         return observableDefer(() => {
-          // log.info("Init: Pause playback to build buffer");
-          // mediaElement.playbackRate = 0;
+          log.info("Init: Pause playback to build buffer");
+          mediaElement.playbackRate = 0;
           return observableOf(0);
         });
       }
       return speed$
-        .pipe(tap((_speed) => {
-          // log.info("Init: Resume playback speed", speed);
-          // mediaElement.playbackRate = speed;
+        .pipe(tap((speed) => {
+          log.info("Init: Resume playback speed", speed);
+          mediaElement.playbackRate = speed;
         }));
     }));
 }

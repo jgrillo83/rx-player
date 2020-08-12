@@ -607,13 +607,14 @@ class Player extends EventEmitter<IPublicAPIEvent> {
    * Load a new video.
    * @param {Object} opts
    */
-  loadVideo(opts : ILoadVideoOptions) : void {
+         loadVideo(opts : ILoadVideoOptions) : void {
     const options = parseLoadVideoOptions(opts);
     log.info("API: Calling loadvideo", options);
 
     const { autoPlay,
             defaultAudioTrack,
             defaultTextTrack,
+            enableFastSwitching,
             keySystems,
             lowLatencyMode,
             manualBitrateSwitchingMode,
@@ -710,7 +711,8 @@ class Player extends EventEmitter<IPublicAPIEvent> {
         { textTrackMode: "html" as const,
           textTrackElement: options.textTrackElement };
 
-      const bufferOptions = objectAssign({ manualBitrateSwitchingMode },
+      const bufferOptions = objectAssign({ enableFastSwitching,
+                                           manualBitrateSwitchingMode },
                                          this._priv_bufferOptions);
 
       // playback$ Observable, through which the content will be launched.

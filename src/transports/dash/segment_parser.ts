@@ -21,6 +21,10 @@ import {
   takePSSHOut,
 } from "../../parsers/containers/isobmff";
 import {
+  setTrackIdInTfhdTo1,
+  setTrackIdInTkhdTo1,
+} from "../../parsers/containers/isobmff/read";
+import {
   getSegmentsFromCues,
   getTimeCodeScale,
 } from "../../parsers/containers/matroska";
@@ -63,6 +67,9 @@ export default function parser(
   const isWEBM = isWEBMEmbeddedTrack(representation);
 
   if (!segment.isInit) {
+    if (!isWEBM) {
+      setTrackIdInTfhdTo1(chunkData);
+    }
     const chunkInfos = isWEBM ? null : // TODO extract time info from webm
                                 getISOBMFFTimingInfos(chunkData,
                                                       isChunked,
@@ -82,6 +89,9 @@ export default function parser(
                                                     Array.isArray(indexRange) ?
                                                       indexRange[0] :
                                                       0);
+  if (!isWEBM) {
+    setTrackIdInTkhdTo1(chunkData);
+  }
 
   if (nextSegments !== null && nextSegments.length > 0) {
     representation.index._addSegments(nextSegments);

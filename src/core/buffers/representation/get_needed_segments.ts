@@ -183,6 +183,8 @@ function shouldContentBeReplaced(
   }
 
   if (oldContent.adaptation.id !== currentContent.adaptation.id) {
+    log.debug("Buffer: a segment in another adaptation can be replaced",
+              oldContent.segment, oldContent.adaptation.id, currentContent.adaptation.id);
     return true; // replace segments from another Adaptation
   }
 
@@ -190,10 +192,26 @@ function shouldContentBeReplaced(
   if (fastSwitchThreshold === undefined) {
     // only re-load comparatively-poor bitrates for the same Adaptation.
     const bitrateCeil = oldContentBitrate * BITRATE_REBUFFERING_RATIO;
-    return currentContent.representation.bitrate > bitrateCeil;
+    if (currentContent.representation.bitrate > bitrateCeil) {
+      log.debug("Buffer: a segment can be replaced by a higher quality one",
+                oldContent.segment,
+                oldContent.representation.bitrate,
+                currentContent.representation.bitrate);
+      return true;
+    }
+    return false;
   }
-  return oldContentBitrate < fastSwitchThreshold &&
-         currentContent.representation.bitrate > oldContentBitrate;
+  if (oldContentBitrate < fastSwitchThreshold &&
+      currentContent.representation.bitrate > oldContentBitrate)
+  {
+    log.debug("Buffer: a segment can be fast-switched",
+              oldContent.segment,
+              oldContent.representation.bitrate,
+              currentContent.representation.bitrate,
+              fastSwitchThreshold);
+    return true;
+  }
+  return false;
 }
 
 /**

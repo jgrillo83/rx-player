@@ -112,8 +112,8 @@ export default function generateKeyRequest(
   initDataType: string|undefined
 ) : Observable<unknown> {
   return observableDefer(() => {
-    log.debug("Compat: Calling generateRequest on the MediaKeySession");
     const patchedInit = patchInitData(initData);
+    log.debug("Compat: Calling generateRequest on the MediaKeySession");
     return castToObservable(session.generateRequest(initDataType == null ? "" :
                                                                            initDataType,
                                                     patchedInit));

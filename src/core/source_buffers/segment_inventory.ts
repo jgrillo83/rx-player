@@ -302,8 +302,10 @@ export default class SegmentInventory {
                 bufferType, inventoryIndex, inventory.length);
       inventory.splice(inventoryIndex, inventory.length - inventoryIndex);
     }
-    log.debug(`SI: current ${bufferType} inventory timeline:\n` +
-              prettyPrintInventory(this.inventory));
+    if (bufferType !== undefined && log.getLevel() === "DEBUG") {
+      log.debug(`SI: current ${bufferType} inventory timeline:\n` +
+                prettyPrintInventory(this.inventory));
+    }
   }
 
   /**

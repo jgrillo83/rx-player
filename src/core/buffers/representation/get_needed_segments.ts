@@ -134,7 +134,8 @@ export default function getNeededSegments({
           // Our wanted segment begins before (regardless of when it ends)
           // Loaded Segment:   |====...............
           // wanted Segment: |===..................
-          log.debug(completeSeg.start, startSec, completeSeg.end, endSec);
+          log.debug("BUFFER OOPS2:",
+                    completeSeg.start, startSec, completeSeg.end, endSec);
           return true;
         }
         let j = i + 1;
@@ -151,7 +152,12 @@ export default function getNeededSegments({
         // Return `true` if our wanted segment ends after:
         // Loaded Segment: ........=========|
         // wanted Segment: ..........=========|
-        return completeSegments[j].end < endSec + roundingError;
+        if (completeSegments[j].end < endSec + roundingError) {
+          log.debug("BUFFER OOPS3:",
+                    completeSeg.start, startSec, completeSeg.end, endSec);
+          return true;
+        }
+        return false;
       }
     }
 

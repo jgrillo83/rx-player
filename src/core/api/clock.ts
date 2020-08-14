@@ -358,9 +358,11 @@ function createClock(
         map((state : IMediaInfosState) => {
           lastTimings = getCurrentClockTick(state);
           log.debug("API: new clock tick", lastTimings);
-          log.debug("API: current playback timeline:\n" +
-                    prettyPrintBuffered(lastTimings.buffered,
-                                        lastTimings.currentTime));
+          if (log.getLevel() === "DEBUG") {
+            log.debug("API: current playback timeline:\n" +
+                      prettyPrintBuffered(lastTimings.buffered,
+                                          lastTimings.currentTime));
+          }
           return lastTimings;
         }),
 

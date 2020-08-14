@@ -72,17 +72,28 @@ export default function getNeededSegments({
     start: Math.max(neededRange.start - 0.5, 0),
     end: neededRange.end + 0.5,
   }, segmentInventory);
+  const bufferType = content.adaptation.type;
 
   // 2 - remove from pushed list of current segments the contents we want to replace
+  let oldLength = currentSegments.length;
   const consideredSegments = currentSegments
     .filter((bufferedSegment) => !shouldContentBeReplaced(bufferedSegment.infos,
                                                           content,
                                                           currentPlaybackTime,
                                                           fastSwitchThreshold));
+  if (consideredSegments.length !== oldLength) {
+    log.debug("Buffer WEIRD1 REPLACED", bufferType, consideredSegments.length,
+                                        oldLength);
+  }
 
   // 3 - remove from that list the segments who appeared to have been GCed
+  oldLength = consideredSegments.length;
   const completeSegments = filterGarbageCollectedSegments(consideredSegments,
                                                           neededRange);
+  if (completeSegments.length !== oldLength) {
+    log.debug("Buffer WEIRD2 REPLACED",
+              bufferType, completeSegments.length, oldLength);
+  }
 
   // 4 - now filter the list of segments we can download
   const roundingError = Math.min(1 / 60, MINIMUM_SEGMENT_SIZE);
@@ -161,6 +172,13 @@ export default function getNeededSegments({
       }
     }
 
+    if (completeSegments.length > 0) {
+      const lastSegment = completeSegments[completeSegments.length - 1];
+      log.debug("BUFFER OOPS4",
+                bufferType,
+                lastSegment.bufferedStart, lastSegment.bufferedEnd,
+                startSec, endSec);
+    }
     // No loaded segment ends after this segment's assumed start time.
     // It's safe to consider that we should load it.
     return true;

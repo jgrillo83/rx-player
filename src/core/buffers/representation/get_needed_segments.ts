@@ -324,20 +324,25 @@ function getCorrespondingBufferedSegments(
   for (let i = segmentInventory.length - 1; i >= 0; i--) {
     const eltInventory = segmentInventory[i];
 
-    if (!eltInventory.partiallyPushed &&
-        eltInventory.infos.representation.decipherable !== false)
-    {
+    if (!eltInventory.partiallyPushed) {
+      if (eltInventory.infos.representation.decipherable === false) {
+        log.debug("Buffer: skipping undecipherable buffered segment",
+                  eltInventory.start, eltInventory.end);
+        continue;
+      }
       const inventorySegment = eltInventory.infos.segment;
       const eltInventoryStart = inventorySegment.time /
                                 inventorySegment.timescale;
-      const eltInventoryEnd = inventorySegment.duration == null ?
-        eltInventory.end :
-        eltInventoryStart + inventorySegment.duration /
-          inventorySegment.timescale;
+      const eltInventoryEnd = eltInventoryStart +
+                                inventorySegment.duration / inventorySegment.timescale;
       if ((eltInventoryEnd > minEnd && eltInventoryStart < maxStart) ||
           (eltInventory.end > minEnd && eltInventory.start < maxStart))
       {
         overlappingChunks.unshift(eltInventory);
+      } else {
+        log.debug("Buffer: NopeNope",
+                   eltInventory.start, eltInventory.end,
+                   neededRange.start, neededRange.end);
       }
     }
   }

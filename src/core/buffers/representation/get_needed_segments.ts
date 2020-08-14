@@ -317,19 +317,21 @@ function getCorrespondingBufferedSegments(
   segmentInventory : IBufferedChunk[]
 ) : IBufferedChunk[] {
   const segmentRoundingError = Math.max(1 / 60, MINIMUM_SEGMENT_SIZE);
-  const minEnd = neededRange.start + segmentRoundingError;
-  const maxStart = neededRange.end - segmentRoundingError;
+  const minEnd = neededRange.start - segmentRoundingError;
+  const maxStart = neededRange.end + segmentRoundingError;
 
   const overlappingChunks : IBufferedChunk[] = [];
   for (let i = segmentInventory.length - 1; i >= 0; i--) {
     const eltInventory = segmentInventory[i];
+    log.debug("Buffer: IN IT", eltInventory.start, eltInventory.end);
 
-    if (!eltInventory.partiallyPushed) {
-      if (eltInventory.infos.representation.decipherable === false) {
-        log.debug("Buffer: skipping undecipherable buffered segment",
-                  eltInventory.start, eltInventory.end);
-        continue;
-      }
+    if (eltInventory.partiallyPushed) {
+      log.debug("Buffer: skipping partially pushed buffered segment",
+                eltInventory.start, eltInventory.end);
+    } else if (eltInventory.infos.representation.decipherable === false) {
+      log.debug("Buffer: skipping undecipherable buffered segment",
+                eltInventory.start, eltInventory.end);
+    } else {
       const inventorySegment = eltInventory.infos.segment;
       const eltInventoryStart = inventorySegment.time /
                                 inventorySegment.timescale;

@@ -134,6 +134,7 @@ export default function getNeededSegments({
           // Our wanted segment begins before (regardless of when it ends)
           // Loaded Segment:   |====...............
           // wanted Segment: |===..................
+          log.debug(completeSeg.start, startSec, completeSeg.end, endSec);
           return true;
         }
         let j = i + 1;

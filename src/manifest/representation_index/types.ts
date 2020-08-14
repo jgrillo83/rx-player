@@ -109,12 +109,12 @@ export interface ISegment {
   /**
    * If set, the corresponding byte-range in the downloaded segment will
    * contain an index describing other Segments
-   * TODO put in privateInfos?
+   * TODO put in privateInfos? (Specified in v3.x.x API, sadly).
    */
   indexRange? : [number, number];
   /**
    * Optional number of the Segment
-   * TODO put in privateInfos?
+   * TODO put in privateInfos? (Specified in v3.x.x API, sadly).
    */
   number? : number;
   /**
@@ -122,7 +122,10 @@ export interface ISegment {
    * exploited by the transport logic.
    */
   privateInfos? : IPrivateInfos;
-  /** Optional byte range to retrieve the Segment from its URL(s) */
+  /**
+   * Optional byte range to retrieve the Segment from its URL(s).
+   * TODO put in privateInfos? (Specified in v3.x.x API, sadly).
+   */
   range? : [number, number];
   /**
    * Estimated time, in seconds, at which the concerned segment should be

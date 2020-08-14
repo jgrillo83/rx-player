@@ -88,49 +88,48 @@ export default function getNeededSegments({
   const roundingError = Math.min(1 / 60, MINIMUM_SEGMENT_SIZE);
   return possibleSegments.filter(segment => {
     if (loadedSegmentPendingPush.test(segment.id)) {
-      return false; // we're already pushing it
+      return false; // we're already pushing it, ignore
     }
 
-    const { duration, time, timescale } = segment;
-    if (segment.isInit || duration === undefined) {
+    if (segment.isInit) {
       return true; // never skip those
     }
 
-    if (duration / timescale < MINIMUM_SEGMENT_SIZE) {
-      return false; // too small
+    const { duration, time, timescale } = segment;
+    const durationSec = duration / timescale;
+    const startSec = time / timescale;
+    const endSec = startSec + durationSec;
+    if (durationSec < MINIMUM_SEGMENT_SIZE) {
+      log.info("Buffer: Segment too small, not loading it", durationSec, startSec);
+      return false;
     }
 
-    const scaledTime = time / timescale;
-    const scaledDuration = duration / timescale;
-    const scaledEnd = scaledTime + scaledDuration;
-
-    // check if the segment is already downloaded
+    // check if the segment is already loaded:
+    // If a segment from the same Period has the same start and end -> ignores
     for (let i = 0; i < completeSegments.length; i++) {
       const completeSeg = completeSegments[i];
       const areFromSamePeriod = completeSeg.infos.period.id === content.period.id;
-      // Check if content are from same period, as there can't be overlapping
-      // periods, we should consider a segment as already downloaded if
-      // it is from same period (but can be from different adaptation or
-      // representation)
       if (areFromSamePeriod) {
-        const segTime = completeSeg.infos.segment.time;
-        const segDuration = completeSeg.infos.segment.duration;
         const segTimeScale = completeSeg.infos.segment.timescale;
-        const scaledSegTime = segTime / segTimeScale;
-        const scaledSegEnd = scaledSegTime + segDuration / segTimeScale;
-        if (scaledTime - scaledSegTime > -roundingError &&
-            scaledSegEnd - scaledEnd > -roundingError)
+        const segDuration = completeSeg.infos.segment.duration;
+        const currSegStartSec = completeSeg.infos.segment.time / segTimeScale;
+        const currSegEndSec = currSegStartSec + segDuration / segTimeScale;
+        if (startSec - currSegStartSec > -roundingError &&
+            currSegEndSec - endSec > -roundingError)
         {
-          return false; // already downloaded
+          return false; // loaded
         }
       }
     }
 
-    // check if there is an hole in place of the segment currently
+    // check if there is a hole in place of the segment currently
     for (let i = 0; i < completeSegments.length; i++) {
       const completeSeg = completeSegments[i];
-      if (completeSeg.end > scaledTime) {
-        if (completeSeg.start > scaledTime + roundingError) {
+      if (completeSeg.end > startSec) {
+        if (completeSeg.start > startSec + roundingError) {
+          // Our wanted segment begins before (regardless of when it ends)
+          // Loaded Segment:   |====...............
+          // wanted Segment: |===..................
           return true;
         }
         let j = i + 1;
@@ -144,9 +143,15 @@ export default function getNeededSegments({
         }
         j--; // index of last contiguous segment
 
-        return completeSegments[j].end < scaledEnd + roundingError;
+        // Return `true` if our wanted segment ends after:
+        // Loaded Segment: ........=========|
+        // wanted Segment: ..........=========|
+        return completeSegments[j].end < endSec + roundingError;
       }
     }
+
+    // No loaded segment ends after this segment's assumed start time.
+    // It's safe to consider that we should load it.
     return true;
   });
 }
@@ -184,7 +189,8 @@ function shouldContentBeReplaced(
 
   if (oldContent.adaptation.id !== currentContent.adaptation.id) {
     log.debug("Buffer: a segment in another adaptation can be replaced",
-              oldContent.segment, oldContent.adaptation.id, currentContent.adaptation.id);
+              segment.time, segment.duration, segment.timescale,
+              oldContent.adaptation.id, currentContent.adaptation.id);
     return true; // replace segments from another Adaptation
   }
 
@@ -194,7 +200,7 @@ function shouldContentBeReplaced(
     const bitrateCeil = oldContentBitrate * BITRATE_REBUFFERING_RATIO;
     if (currentContent.representation.bitrate > bitrateCeil) {
       log.debug("Buffer: a segment can be replaced by a higher quality one",
-                oldContent.segment,
+                segment.time, segment.duration, segment.timescale,
                 oldContent.representation.bitrate,
                 currentContent.representation.bitrate);
       return true;
@@ -205,7 +211,7 @@ function shouldContentBeReplaced(
       currentContent.representation.bitrate > oldContentBitrate)
   {
     log.debug("Buffer: a segment can be fast-switched",
-              oldContent.segment,
+              segment.time, segment.duration, segment.timescale,
               oldContent.representation.bitrate,
               currentContent.representation.bitrate,
               fastSwitchThreshold);
@@ -245,7 +251,7 @@ function filterGarbageCollectedSegments(
                  MAX_TIME_MISSING_FROM_COMPLETE_SEGMENT)
     {
       log.info("Buffer: The start of the wanted segment has been garbage collected",
-               currentSeg);
+               currentSeg.start, currentSeg.bufferedStart);
       segmentStartIsComplete = false;
     }
 
@@ -259,7 +265,7 @@ function filterGarbageCollectedSegments(
                  MAX_TIME_MISSING_FROM_COMPLETE_SEGMENT)
     {
       log.info("Buffer: The end of the wanted segment has been garbage collected",
-                currentSeg);
+                currentSeg.end, currentSeg.bufferedEnd);
       segmentEndIsComplete = false;
     }
 

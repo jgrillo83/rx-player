@@ -18,6 +18,7 @@ import {
   defer as observableDefer,
   Observable,
 } from "rxjs";
+import { tap } from "rxjs/operators";
 import log from "../../log";
 import {
   be4toi,
@@ -78,7 +79,7 @@ export function patchInitData(initData : Uint8Array) : Uint8Array {
         initData[offset + 26] === 0xFB &&
         initData[offset + 27] === 0x4B
     ) {
-      log.info("Compat: CENC PSSH found.");
+      log.info("Compat: CENC PSSH found.", offset, currentPSSH.length);
       cencs = concat(cencs, currentPSSH);
     } else {
       resInitData = concat(resInitData, currentPSSH);
@@ -110,12 +111,13 @@ export default function generateKeyRequest(
   session: MediaKeySession|ICustomMediaKeySession,
   initData: Uint8Array,
   initDataType: string|undefined
-) : Observable<unknown> {
+) : Observable<void> {
   return observableDefer(() => {
     const patchedInit = patchInitData(initData);
-    log.debug("Compat: Calling generateRequest on the MediaKeySession");
-    return castToObservable(session.generateRequest(initDataType == null ? "" :
-                                                                           initDataType,
-                                                    patchedInit));
+    const strInitDataType = initDataType ?? "";
+    log.debug("Compat: Calling generateRequest on the MediaKeySession",
+              strInitDataType, patchInitData.length);
+    return castToObservable(session.generateRequest(strInitDataType, patchedInit))
+      .pipe(tap(() => { log.debug("Compat: generateKeyRequest called with success"); }));
   });
 }

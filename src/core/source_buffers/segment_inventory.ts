@@ -78,6 +78,74 @@ export interface IInsertedChunkInfos {
                 // pushed, in seconds
 }
 
+function prettyPrintInventory(inventory : IBufferedChunk[]) : string {
+  const roundingError = 1 / 60;
+  const encounteredReps :
+    Partial<Record<string /* Period `id` */,
+                   Partial<Record<string /* Representation `id` */,
+                                  string /* associated letter */ >>>> = {};
+  const letters : Array<{ letter : string;
+                          periodId : string;
+                          representationId : string | number;
+                          bitrate? : number; }> = [];
+  let lastChunk : IBufferedChunk | null = null;
+  let lastLetter : string | null = null;
+
+  function generateNewLetter(infos : IBufferedChunkInfos) : string {
+    const currentLetter = String.fromCharCode(letters.length + 65);
+    letters.push({ letter: currentLetter,
+                   periodId: infos.period.id,
+                   representationId: infos.representation.id,
+                   bitrate: infos.representation.bitrate });
+    return currentLetter;
+  }
+
+  let str = "";
+  for (let i = 0; i < inventory.length; i++) {
+    const chunk = inventory[i];
+    if (chunk.bufferedStart !== undefined && chunk.bufferedEnd !== undefined) {
+
+      const periodId = chunk.infos.period.id;
+      const representationId = chunk.infos.representation.id;
+      const encounteredPeriod = encounteredReps[periodId];
+
+      let currentLetter : string;
+      if (encounteredPeriod === undefined) {
+        currentLetter = generateNewLetter(chunk.infos);
+        encounteredReps[periodId] = { [representationId]: currentLetter };
+      } else if (encounteredPeriod[representationId] === undefined) {
+        currentLetter = generateNewLetter(chunk.infos);
+        encounteredPeriod[representationId] = currentLetter;
+      } else {
+        currentLetter = encounteredPeriod[representationId] as string;
+      }
+
+      if (lastChunk === null) {
+        str += `${chunk.bufferedStart.toFixed(2)}|${currentLetter}|`;
+      } else if (lastLetter === currentLetter) {
+        if ((lastChunk.bufferedEnd as number) + roundingError < chunk.bufferedStart) {
+          str += `${(lastChunk.bufferedEnd as number).toFixed(2)} ~ ` +
+                 `${chunk.bufferedStart.toFixed(2)}|${currentLetter}|`;
+        }
+      } else {
+        str += `${(lastChunk.bufferedEnd as number).toFixed(2)} ~ ` +
+               `${chunk.bufferedStart.toFixed(2)}|${currentLetter}|`;
+    }
+      lastChunk = chunk;
+      lastLetter = currentLetter;
+    }
+  }
+  if (lastChunk !== null) {
+    str += String(lastChunk.end.toFixed(2));
+  }
+  letters.forEach(letterInfo => {
+    str += `\n[${letterInfo.letter}] ` +
+           `P: ${letterInfo.periodId} || R: ${letterInfo.representationId}` +
+           `(${letterInfo.bitrate})`;
+  });
+  return str;
+}
+
 /**
  * Keep track of every chunk downloaded and currently in the browser's memory.
  *
@@ -234,6 +302,8 @@ export default class SegmentInventory {
                 bufferType, inventoryIndex, inventory.length);
       inventory.splice(inventoryIndex, inventory.length - inventoryIndex);
     }
+    log.debug(`SI: current ${bufferType} inventory timeline:\n` +
+              prettyPrintInventory(this.inventory));
   }
 
   /**

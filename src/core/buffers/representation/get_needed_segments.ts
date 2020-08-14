@@ -118,6 +118,10 @@ export default function getNeededSegments({
             currSegEndSec - endSec > -roundingError)
         {
           return false; // loaded
+        } else if (Math.abs(startSec - currSegStartSec) < 2 ||
+                   Math.abs(endSec - currSegEndSec) < 2)
+        {
+          log.debug("BUFFER: OOPS", startSec, endSec, currSegStartSec, currSegEndSec);
         }
       }
     }

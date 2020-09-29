@@ -24,15 +24,16 @@ interface ICustomSourceBufferEvents { updatestart : Event|undefined;
 
 export interface ICustomSourceBuffer<T>
   extends IEventEmitter<ICustomSourceBufferEvents> {
-    buffered : TimeRanges;
-    changeType? : (type: string) => void;
+    getBufferedRanges : () => TimeRanges;
+    changeType : (type: string) => void;
     updating : boolean;
-    appendWindowStart : number;
-    appendWindowEnd : number;
-    timestampOffset : number;
+    setAppendWindows : (appendWindow: [ number | undefined,
+                                        number | undefined ]) => void;
+    setTimestampOffset : (timestampOffset : number) => void;
     appendBuffer(data : T) : void;
     remove(from : number, to : number) : void;
     abort() : void;
+    endOfSegment : () => void;
   }
 
 /**

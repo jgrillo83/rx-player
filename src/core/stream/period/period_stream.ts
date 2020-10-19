@@ -25,8 +25,6 @@ import {
 } from "rxjs";
 import {
   catchError,
-  filter,
-  ignoreElements,
   map,
   mapTo,
   mergeMap,
@@ -116,8 +114,6 @@ export default function PeriodStream({
   wantedBufferAhead$,
 } : IPeriodStreamArguments) : Observable<IPeriodStreamEvent> {
   const { period } = content;
-  // Emit when the adaptation switch strategy is equal to `needs-buffer-flush`
-  const needsBufferFlushing$ = new ReplaySubject<void>(1);
 
   // Emits the chosen Adaptation for the current type.
   // `null` when no Adaptation is chosen (e.g. no subtitles)
@@ -148,9 +144,7 @@ export default function PeriodStream({
         }
 
         return observableConcat<IPeriodStreamEvent>(
-          cleanBuffer$.pipe(mapTo(EVENTS.adaptationChange(bufferType,
-                                                          null,
-                                                          period))),
+          cleanBuffer$.pipe(mapTo(EVENTS.adaptationChange(bufferType, null, period))),
           createEmptyStream(clock$, wantedBufferAhead$, bufferType, { period })
         );
       }
@@ -180,41 +174,34 @@ export default function PeriodStream({
                                                        audioTrackSwitchingMode);
           if (strategy.type === "needs-reload") {
             return observableOf(EVENTS.needsMediaSourceReload(period, tick));
-          } else if (strategy.type === "needs-buffer-flush") {
-            needsBufferFlushing$.next();
           }
 
           const cleanBuffer$ = strategy.type === "clean-buffer" ?
             observableConcat(...strategy.value.map(({ start, end }) =>
                                qSourceBuffer.removeBuffer(start, end))
-                            ).pipe(ignoreElements()) :
-            EMPTY;
+                            ).pipe(switchMap((_, i) => {
+                              if (audioTrackSwitchingMode === "flush" &&
+                                  i === strategy.value.length - 1
+                                ) {
+                                  return observableOf(
+                                    EVENTS.needsSourceBufferFlush(bufferType));
+                                }
+                                return EMPTY;
+                              })) : EMPTY;
 
           const bufferGarbageCollector$ = garbageCollectors.get(qSourceBuffer);
           const adaptationStream$ = createAdaptationStream(adaptation,
                                                            qSourceBuffer).pipe(share());
 
-          const firstPushedSegmentOnAdaptationChange$ = needsBufferFlushing$.pipe(
-            switchMap(() => {
-              return adaptationStream$.pipe(
-                filter((value) => value.type === "added-segment"),
-                map(() => EVENTS.needsSourceBufferFlush(bufferType)),
-                take(1));
-            })
-          );
-
           return sourceBuffersStore.waitForUsableSourceBuffers().pipe(mergeMap(() => {
             return observableConcat(cleanBuffer$,
                                     observableMerge(adaptationStream$,
-                                                    firstPushedSegmentOnAdaptationChange$,
                                                     bufferGarbageCollector$));
           }));
         }));
 
       return observableConcat<IPeriodStreamEvent>(
-        observableOf(EVENTS.adaptationChange(bufferType,
-                                             adaptation,
-                                             period)),
+        observableOf(EVENTS.adaptationChange(bufferType, adaptation, period)),
         newStream$
       );
     }),

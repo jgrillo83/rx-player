@@ -58,12 +58,8 @@ export default function getAdaptationSwitchStrategy(
     return { type: "continue", value: undefined };
   }
 
-  if (adaptation.type === "audio") {
-    if (audioTrackSwitchingMode === "reload") {
+  if (adaptation.type === "audio" && audioTrackSwitchingMode === "reload") {
       return { type: "needs-reload", value: undefined };
-    } else if (audioTrackSwitchingMode === "flush") {
-      return { type: "needs-buffer-flush", value: undefined };
-    }
   }
 
   const bufferedRanges = convertToRanges(buffered);

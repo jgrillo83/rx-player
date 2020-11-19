@@ -61,3 +61,24 @@ export default function isSessionUsable(
   log.debug("EME: isSessionUsable: MediaKeySession is usable", loadedSession.sessionId);
   return true;
 }
+
+export function isSessionEmpty(
+  loadedSession : MediaKeySession | ICustomMediaKeySession
+) : boolean {
+  if (loadedSession.sessionId === "") {
+    return true;
+  }
+
+  const keyStatusesMap = loadedSession.keyStatuses;
+  const keyStatuses: string[] = [];
+  keyStatusesMap.forEach((keyStatus) => {
+    keyStatuses.push(keyStatus);
+  });
+
+  if (keyStatuses.length <= 0) {
+    log.debug("EME: isSessionEmpty: MediaKeySession given has an empty keyStatuses",
+              loadedSession);
+    return true;
+  }
+  return false;
+}

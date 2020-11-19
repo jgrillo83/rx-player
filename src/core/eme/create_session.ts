@@ -18,6 +18,7 @@ import {
   defer as observableDefer,
   Observable,
   of as observableOf,
+  timer as observableTimer,
 } from "rxjs";
 import {
   catchError,
@@ -29,7 +30,9 @@ import log from "../../log";
 import arrayIncludes from "../../utils/array_includes";
 import castToObservable from "../../utils/cast_to_observable";
 import { IMediaKeysInfos } from "./types";
-import isSessionUsable from "./utils/is_session_usable";
+import isSessionUsable, {
+  isSessionEmpty,
+} from "./utils/is_session_usable";
 
 export interface INewSessionCreatedEvent {
   type : "created-session";
@@ -151,16 +154,23 @@ export default function createSession(
                                 value: { mediaKeySession: session, sessionType } });
         }
 
-        if (hasLoadedSession && isSessionUsable(session)) {
-          persistentSessionsStore.add(initData, initDataType, session);
-          log.info("EME: Succeeded to load persistent session.");
-          return observableOf({ type: "loaded-persistent-session" as const,
-                                value: { mediaKeySession: session, sessionType } });
-        }
+        /* tslint:disable no-unsafe-any */
+        const timeToWait = (window as any).TIME ?? 5;
+        const tryToWait$ = isSessionEmpty(session) ? observableTimer(timeToWait) :
+                                                     observableOf(0);
 
-        // Unusable persistent session: recreate a new session from scratch.
-        log.warn("EME: Previous persistent session not usable anymore.");
-        return recreatePersistentSession();
+        return tryToWait$.pipe(mergeMap(() : Observable<ICreateSessionEvent> => {
+          if (isSessionUsable(session)) {
+            persistentSessionsStore.add(initData, initDataType, session);
+            log.info("EME: Succeeded to load persistent session.");
+            return observableOf({ type: "loaded-persistent-session" as const,
+                                  value: { mediaKeySession: session, sessionType } });
+          }
+
+          // Unusable persistent session: recreate a new session from scratch.
+          log.warn("EME: Previous persistent session not usable anymore.");
+          return recreatePersistentSession();
+        }));
       }),
       catchError((err : unknown) : Observable<INewSessionCreatedEvent> => {
         log.warn("EME: Unable to load persistent session: " +

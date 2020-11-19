@@ -18,7 +18,6 @@ import {
   defer as observableDefer,
   Observable,
   of as observableOf,
-  timer as observableTimer,
 } from "rxjs";
 import {
   catchError,
@@ -29,6 +28,7 @@ import { ICustomMediaKeySession } from "../../compat";
 import log from "../../log";
 import arrayIncludes from "../../utils/array_includes";
 import castToObservable from "../../utils/cast_to_observable";
+import PPromise from "../../utils/promise";
 import { IMediaKeysInfos } from "./types";
 import isSessionUsable, {
   isSessionEmpty,
@@ -155,9 +155,9 @@ export default function createSession(
         }
 
         /* tslint:disable no-unsafe-any */
-        const timeToWait = (window as any).TIME ?? 5;
-        const tryToWait$ = isSessionEmpty(session) ? observableTimer(timeToWait) :
-                                                     observableOf(0);
+        const tryToWait$ = isSessionEmpty(session) ?
+          (log.warn("!!!! Microtask test"), castToObservable(PPromise.resolve(0))) :
+          observableOf(0);
 
         return tryToWait$.pipe(mergeMap(() : Observable<ICreateSessionEvent> => {
           if (isSessionUsable(session)) {

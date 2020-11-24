@@ -201,7 +201,7 @@ export default class NativeTextSegmentBuffer
       }
       this._buffered.insert(start, end);
       if (infos.inventoryInfos !== null) {
-        this._segmentInventory.insertChunk(infos.inventoryInfos);
+        this._segmentInventory.insertChunk(infos.inventoryInfos, this._buffered);
       }
       return observableOf(undefined);
     });

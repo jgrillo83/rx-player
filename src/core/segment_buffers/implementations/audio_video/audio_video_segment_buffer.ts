@@ -51,6 +51,9 @@ import {
 
 const { SOURCE_BUFFER_FLUSHING_INTERVAL } = config;
 
+const LIST : any[] = [];
+(window as any).SEGMENT_LIST = LIST;
+
 /**
  * Item added to the AudioVideoSegmentBuffer's queue before being processed into
  * a task (see `IAVSBPendingTask`).
@@ -395,7 +398,12 @@ export default class AudioVideoSegmentBuffer
         switch (task.type) {
           case SegmentBufferOperation.Push:
             if (task.inventoryData !== null) {
-              this._segmentInventory.insertChunk(task.inventoryData);
+              const isPushed = this._segmentInventory
+                .insertChunk(task.inventoryData, this._sourceBuffer.buffered);
+              if (!isPushed) {
+                console.log("!!!!!!!!! TOTO ERORORR", task.inventoryData)
+                LIST.push(task.inventoryData.segment);
+              }
             }
             break;
           case SegmentBufferOperation.EndOfSegment:

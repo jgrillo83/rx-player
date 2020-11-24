@@ -309,6 +309,12 @@ export default function RepresentationStream<T>({
                                              fastSwitchThreshold,
                                              neededRange,
                                              segmentBuffer })
+          .filter((segment) => {
+            return !(window as any).SEGMENT_LIST.some((seg : ISegment) => {
+              return seg.id === segment.id &&
+                     seg.mediaURLs?.[0] === segment.mediaURLs?.[0];
+            });
+          })
           .map((segment) => ({ priority: getSegmentPriority(segment, timing),
                                segment }));
 

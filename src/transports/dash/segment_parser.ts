@@ -22,6 +22,10 @@ import {
   takePSSHOut,
 } from "../../parsers/containers/isobmff";
 import {
+  setTrackIdInTfhdTo1,
+  setTrackIdInTkhdTo1,
+} from "../../parsers/containers/isobmff/read";
+import {
   getSegmentsFromCues,
   getTimeCodeScale,
 } from "../../parsers/containers/matroska";
@@ -73,6 +77,7 @@ export default function generateAudioVideoSegmentParser(
     const isWEBM = isWEBMEmbeddedTrack(representation);
 
     if (!segment.isInit) {
+      setTrackIdInTfhdTo1(chunkData);
       const chunkInfos = isWEBM ? null : // TODO extract time info from webm
                                   getISOBMFFTimingInfos(chunkData,
                                                         isChunked,
@@ -86,6 +91,7 @@ export default function generateAudioVideoSegmentParser(
                                      appendWindow } });
     }
     // we're handling an initialization segment
+    setTrackIdInTkhdTo1(chunkData);
     const { indexRange } = segment;
 
     let nextSegments : ISupplementarySegmentsInfo[] | null;

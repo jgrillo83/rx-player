@@ -23,7 +23,7 @@ import {
 } from "../../parsers/containers/isobmff";
 import {
   setTrackIdInTfhdTo1,
-  setTrackIdInTkhdTo1,
+  // setTrackIdInTkhdTo1,
 } from "../../parsers/containers/isobmff/read";
 import {
   getSegmentsFromCues,
@@ -91,7 +91,7 @@ export default function generateAudioVideoSegmentParser(
                                      appendWindow } });
     }
     // we're handling an initialization segment
-    setTrackIdInTkhdTo1(chunkData);
+    // setTrackIdInTkhdTo1(chunkData);
     const { indexRange } = segment;
 
     let nextSegments : ISupplementarySegmentsInfo[] | null;

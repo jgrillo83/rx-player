@@ -112,13 +112,11 @@ function setTrackIdInTkhdTo1(buf : Uint8Array) : void {
     console.error("REPLACING TK_ID: INVALID TKHD VERSION:", tkhd[0]);
     return ;
   } else if (tkhd[0] === 1) {
-    debugger;
     tkhd[4 + 8 + 8] = 0;
     tkhd[4 + 8 + 8 + 1] = 0;
     tkhd[4 + 8 + 8 + 2] = 0;
     tkhd[4 + 8 + 8 + 3] = 1;
   } else if (tkhd[0] === 0) {
-    debugger;
     tkhd[4 + 4 + 4] = 0;
     tkhd[4 + 4 + 4 + 1] = 0;
     tkhd[4 + 4 + 4 + 2] = 0;
@@ -152,11 +150,14 @@ function setTrackIdInTfhdTo1(buf : Uint8Array) : void {
     console.error("REPLACING TK_ID: INVALID tfhd VERSION:", tfhd[0]);
     return ;
   }
-  debugger;
-  tfhd[4] = 0;
-  tfhd[4 + 1] = 0;
-  tfhd[4 + 2] = 0;
-  tfhd[4 + 3] = 1;
+  console.error("!!!! old", tfhd[4 + 3]);
+  if (typeof (window as any).ACTIV === "number") {
+    tfhd[4] = 0;
+    tfhd[4 + 1] = 0;
+    tfhd[4 + 2] = 0;
+    tfhd[4 + 3] = (window as any).ACTIV;
+  }
+  console.error("!!!! new", tfhd[4 + 3]);
 }
 
 export {

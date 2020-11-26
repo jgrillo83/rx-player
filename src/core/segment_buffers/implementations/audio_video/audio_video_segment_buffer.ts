@@ -395,11 +395,7 @@ export default class AudioVideoSegmentBuffer
         switch (task.type) {
           case SegmentBufferOperation.Push:
             if (task.inventoryData !== null) {
-              const isPushed = this._segmentInventory
-                .insertChunk(task.inventoryData, this._sourceBuffer.buffered);
-              if (!isPushed) {
-                console.log("!!!!!!!!! TOTO ERORORR", task.inventoryData)
-              }
+              this._segmentInventory.insertChunk(task.inventoryData);
             }
             break;
           case SegmentBufferOperation.EndOfSegment:

@@ -382,7 +382,7 @@ export default class HTMLTextSegmentBuffer
     this._buffered.insert(start, end);
     this._buffer.insert(cues, start, end);
     if (infos.inventoryInfos !== null) {
-      this._segmentInventory.insertChunk(infos.inventoryInfos, this._buffered);
+      this._segmentInventory.insertChunk(infos.inventoryInfos);
     }
   }
 

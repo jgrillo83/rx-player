@@ -114,9 +114,6 @@ export interface IBufferedChunk {
    * the `partiallyPushed` property.
    */
   start : number; // Supposed start the segment should start from, in seconds
-
-  maxBufferedStart : number | null;
-  maxBufferedEnd : number | null;
 }
 
 /** information to provide when "inserting" a new chunk into the SegmentInventory. */
@@ -331,31 +328,31 @@ export default class SegmentInventory {
       representation,
       segment,
       start,
-      end } : IInsertedChunkInfos,
-    buffered : TimeRanges
-  ) : boolean {
+      end } : IInsertedChunkInfos
+  ) : void {
     if (segment.isInit) {
-      return false;
+      return;
     }
 
     const bufferType = adaptation.type;
     if (start >= end) {
       log.warn("SI: Invalid chunked inserted: starts before it ends",
                 bufferType, start, end);
-      return false;
+      return;
     }
 
     const { inventory } = this;
 
-    const segmentBuffered = findSegmentInBuffered({ start, end }, buffered);
+    if (start === 599.0748299319728) {
+      debugger;
+    }
+
     const newSegment = { partiallyPushed: true,
                          estimatedStart: start,
                          start,
                          end,
                          precizeStart: false,
                          precizeEnd: false,
-                         maxBufferedStart: segmentBuffered?.[0] ?? null,
-                         maxBufferedEnd: segmentBuffered?.[1] ?? null,
                          bufferedStart: undefined,
                          bufferedEnd: undefined,
                          infos: { segment, period, adaptation, representation } };
@@ -399,7 +396,7 @@ export default class SegmentInventory {
               inventory[i].bufferedStart = undefined;
               inventory[i].precizeStart = inventory[i].precizeStart &&
                                           newSegment.precizeEnd;
-              return segmentBuffered !== null;
+              return;
             }
             // The next segment was completely contained in newSegment.
             // Remove it.
@@ -419,7 +416,7 @@ export default class SegmentInventory {
                       bufferType, start, end, inventory[i].start, inventory[i].end);
             inventory.splice(i, 1);
           }
-          return segmentBuffered !== null;
+          return;
         } else {
           if (segmentI.start === start) {
             if (segmentI.end <= end) {
@@ -453,7 +450,7 @@ export default class SegmentInventory {
                   inventory[i].bufferedStart = undefined;
                   inventory[i].precizeStart = inventory[i].precizeStart &&
                                             newSegment.precizeEnd;
-                  return segmentBuffered !== null;
+                  return;
                 }
                 // The next segment was completely contained in newSegment.
                 // Remove it.
@@ -471,7 +468,7 @@ export default class SegmentInventory {
                           bufferType, start, end, inventory[i].start, inventory[i].end);
                 inventory.splice(i, 1);
               }
-              return segmentBuffered !== null;
+              return;
             } else {
               // The previous segment starts at the same time and finishes
               // after the new segment.
@@ -489,7 +486,7 @@ export default class SegmentInventory {
               segmentI.bufferedStart = undefined;
               segmentI.precizeStart = segmentI.precizeStart &&
                                     newSegment.precizeEnd;
-              return segmentBuffered !== null;
+              return;
             }
           } else {
             if (segmentI.end <= newSegment.end) {
@@ -528,7 +525,7 @@ export default class SegmentInventory {
                   inventory[i].bufferedStart = undefined;
                   inventory[i].precizeStart = inventory[i].precizeStart &&
                                             newSegment.precizeEnd;
-                  return segmentBuffered !== null;
+                  return;
                 }
                 // The next segment was completely contained in newSegment.
                 // Remove it.
@@ -546,7 +543,7 @@ export default class SegmentInventory {
                           bufferType, start, end, inventory[i].start, inventory[i].end);
                 inventory.splice(i, 1);
               }
-              return segmentBuffered !== null;
+              return;
             } else {
               // The previous segment completely recovers the new segment.
               // Split the previous segment into two segments, before and after
@@ -565,10 +562,6 @@ export default class SegmentInventory {
                                                 segmentI.precizeEnd &&
                                                 newSegment.precizeEnd,
                                     precizeEnd: segmentI.precizeEnd,
-                                    maxBufferedStart: Math.max(
-                                      segmentBuffered?.[0] ?? newSegment.end,
-                                      segmentI.maxBufferedStart ?? 0),
-                                    maxBufferedEnd: segmentI.maxBufferedEnd,
                                     bufferedStart: undefined,
                                     bufferedEnd: segmentI.end,
                                     infos: segmentI.infos };
@@ -578,7 +571,7 @@ export default class SegmentInventory {
                                     newSegment.precizeStart;
               inventory.splice(i + 1, 0, newSegment);
               inventory.splice(i + 2, 0, nextSegment);
-              return segmentBuffered !== null;
+              return;
             }
           }
         }
@@ -591,7 +584,7 @@ export default class SegmentInventory {
     if (firstSegment === undefined) { // we do not have any segment yet
       log.debug("SI: first segment pushed", bufferType, start, end);
       this.inventory.push(newSegment);
-      return segmentBuffered !== null;
+      return;
     }
 
     if (firstSegment.start >= end) {
@@ -639,7 +632,7 @@ export default class SegmentInventory {
           inventory[1].start = newSegment.end;
           inventory[1].bufferedStart = undefined;
           inventory[1].precizeStart = newSegment.precizeEnd;
-          return segmentBuffered !== null;
+          return;
         }
         // The next segment was completely contained in newSegment.
         // Remove it.
@@ -672,7 +665,7 @@ export default class SegmentInventory {
       firstSegment.precizeStart = newSegment.precizeEnd;
       this.inventory.splice(0, 0, newSegment);
     }
-    return segmentBuffered !== null;
+    return;
   }
 
   /**
@@ -719,6 +712,12 @@ export default class SegmentInventory {
         this.inventory[firstI].partiallyPushed = false;
         this.inventory[firstI].end = lastEnd;
         this.inventory[firstI].bufferedEnd = lastBufferedEnd;
+
+        // const prevSegment = this.inventory[firstI - 1] ?? null;
+        // const currSegment = this.inventory[firstI];
+        // const estimatedStart = prevSegment !== null ?
+        //   Math.max(prevSegment.bufferedEnd ?? prevSegment.end,
+        //            currSegment.bufferedStart ?? currSegment.start);
       }
     }
 
@@ -739,40 +738,40 @@ export default class SegmentInventory {
   }
 }
 
-function findSegmentInBuffered(
-  { start, end } : { start : number; end : number },
-  buffered : TimeRanges
-) : [number, number] | null {
-  const epsilon = 1 / 60;
-  for (let i = buffered.length - 1; i >= 0; i--) {
-    const rangeStart = buffered.start(i);
-    const rangeEnd = buffered.end(i);
-    if (start >= rangeStart - epsilon) {
-      // we found the first range containing entirely this segment
-      return [Math.max(rangeStart, start),
-              Math.min(rangeEnd, end)];
-    } else if (end > rangeStart) {
-      // This segment may be part of multiple ranges
+// function findSegmentInBuffered(
+//   { start, end } : { start : number; end : number },
+//   buffered : TimeRanges
+// ) : [number, number] | null {
+//   const epsilon = 1 / 60;
+//   for (let i = buffered.length - 1; i >= 0; i--) {
+//     const rangeStart = buffered.start(i);
+//     const rangeEnd = buffered.end(i);
+//     if (start >= rangeStart - epsilon) {
+//       // we found the first range containing entirely this segment
+//       return [Math.max(rangeStart, start),
+//               Math.min(rangeEnd, end)];
+//     } else if (end > rangeStart) {
+//       // This segment may be part of multiple ranges
 
-      // Maybe there's a small hole in `buffered`, check that
-      let currRangeStart = rangeStart;
-      let prevRangeEnd = i === 0 ? null :
-                                   buffered.end(i - 1);
-      let j = i;
-      while (prevRangeEnd !== null && currRangeStart - prevRangeEnd > 0.5) {
-        j--
-        prevRangeEnd = j === 0 ? null :
-                                 buffered.end(j);
-      }
+//       // Maybe there's a small hole in `buffered`, check that
+//       let currRangeStart = rangeStart;
+//       let prevRangeEnd = i === 0 ? null :
+//                                    buffered.end(i - 1);
+//       let j = i;
+//       while (prevRangeEnd !== null && currRangeStart - prevRangeEnd > 0.5) {
+//         j--
+//         prevRangeEnd = j === 0 ? null :
+//                                  buffered.end(j);
+//       }
 
-      if (start >= currRangeStart - epsilon) {
-        return [Math.max(rangeStart, start),
-                Math.min(rangeEnd, end)];
-      }
-    }
-  }
-  return null;
-}
+//       if (start >= currRangeStart - epsilon) {
+//         return [Math.max(rangeStart, start),
+//                 Math.min(rangeEnd, end)];
+//       }
+//     }
+//   }
+//   return null;
+// }
 
 /**
  * Returns `true` if the buffered start of the given chunk looks coherent enough

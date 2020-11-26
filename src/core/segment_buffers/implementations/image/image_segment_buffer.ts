@@ -83,7 +83,7 @@ export default class ImageSegmentBuffer
 
       this._buffered.insert(startTime, endTime);
       if (infos.inventoryInfos !== null) {
-        this._segmentInventory.insertChunk(infos.inventoryInfos, this._buffered);
+        this._segmentInventory.insertChunk(infos.inventoryInfos);
       }
       return observableOf(undefined);
     });

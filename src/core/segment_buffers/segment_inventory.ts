@@ -186,6 +186,10 @@ export default class SegmentInventory {
    */
   public synchronizeBuffered(buffered : TimeRanges) : void {
     const { inventory } = this;
+    if (inventory.some(elt => elt.start === 599.0748299319728)) {
+      debugger;
+    }
+
     let inventoryIndex = 0; // Current index considered.
     let thisSegment = inventory[0]; // Current segmentInfos considered
 
@@ -222,7 +226,9 @@ export default class SegmentInventory {
 
       // Contains infos about the last garbage-collected segment before
       // `thisSegment`.
-      const lastDeletedSegmentInfos = { end: -1, precizeEnd: false };
+      let lastDeletedSegmentInfos : { end : number;
+                                      precizeEnd : boolean } |
+                                    null = null;
 
       // remove garbage-collected segments
       // (not in that TimeRange nor in the previous one)
@@ -231,9 +237,11 @@ export default class SegmentInventory {
         const lastDeletedSegment = // last garbage-collected segment
           inventory[indexBefore + numberOfSegmentToDelete - 1];
 
-        lastDeletedSegmentInfos.end =
-          takeFirstSet<number>(lastDeletedSegment.bufferedEnd, lastDeletedSegment.end);
-        lastDeletedSegmentInfos.precizeEnd = lastDeletedSegment.precizeEnd;
+        lastDeletedSegmentInfos = {
+          end: takeFirstSet<number>(lastDeletedSegment.bufferedEnd,
+                                    lastDeletedSegment.end),
+          precizeEnd: lastDeletedSegment.precizeEnd,
+        };
         log.debug(`SI: ${numberOfSegmentToDelete} segments GCed.`, bufferType);
         inventory.splice(indexBefore, numberOfSegmentToDelete);
         inventoryIndex = indexBefore;
@@ -342,10 +350,6 @@ export default class SegmentInventory {
     }
 
     const { inventory } = this;
-
-    if (start === 599.0748299319728) {
-      debugger;
-    }
 
     const newSegment = { partiallyPushed: true,
                          estimatedStart: start,
@@ -833,7 +837,8 @@ function bufferedEndLooksCoherent(
 function guessBufferedStartFromRangeStart(
   firstSegmentInRange : IBufferedChunk,
   rangeStart : number,
-  lastDeletedSegmentInfos : { end : number; precizeEnd : boolean },
+  lastDeletedSegmentInfos : { end : number; precizeEnd : boolean } |
+                            null,
   bufferType? : string
 ) : void {
   if (firstSegmentInRange.bufferedStart !== undefined) {
@@ -842,7 +847,6 @@ function guessBufferedStartFromRangeStart(
                 bufferType, firstSegmentInRange.bufferedStart, rangeStart);
       firstSegmentInRange.bufferedStart = rangeStart;
     }
-
     if (!firstSegmentInRange.precizeStart &&
         bufferedStartLooksCoherent(firstSegmentInRange))
     {
@@ -853,7 +857,7 @@ function guessBufferedStartFromRangeStart(
     log.debug("SI: buffered start is precize start",
               bufferType, firstSegmentInRange.start);
     firstSegmentInRange.bufferedStart = firstSegmentInRange.start;
-  } else if (lastDeletedSegmentInfos.end >= 0 &&
+  } else if (lastDeletedSegmentInfos !== null &&
              lastDeletedSegmentInfos.end > rangeStart &&
                (lastDeletedSegmentInfos.precizeEnd ||
                 firstSegmentInRange.start - lastDeletedSegmentInfos.end <=
@@ -908,9 +912,11 @@ function guessBufferedEndFromRangeEnd(
       lastSegmentInRange.bufferedEnd = rangeEnd;
     }
     if (!lastSegmentInRange.precizeEnd &&
+        rangeEnd - lastSegmentInRange.end <= MAX_MANIFEST_BUFFERED_START_END_DIFFERENCE &&
         bufferedEndLooksCoherent(lastSegmentInRange))
     {
       lastSegmentInRange.precizeEnd = true;
+      lastSegmentInRange.bufferedEnd = rangeEnd;
       lastSegmentInRange.end = rangeEnd;
     }
   } else if (lastSegmentInRange.precizeEnd) {
@@ -931,11 +937,6 @@ function guessBufferedEndFromRangeEnd(
     log.debug("SI: range end too far from expected end",
               bufferType, rangeEnd, lastSegmentInRange.end);
     lastSegmentInRange.bufferedEnd = lastSegmentInRange.end;
-    if (bufferedEndLooksCoherent(lastSegmentInRange)) {
-      lastSegmentInRange.end = rangeEnd;
-      lastSegmentInRange.precizeEnd = true;
-    }
-
   } else {
     log.debug("SI: Segment appears immediately garbage collected at the end",
               bufferType, lastSegmentInRange.bufferedEnd, rangeEnd);

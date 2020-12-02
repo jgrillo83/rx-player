@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { isCodecSupported } from "../compat";
 import log from "../log";
 import {
   IContentProtections,
@@ -98,7 +97,7 @@ class Representation {
   /**
    * @param {Object} args
    */
-  constructor(args : IParsedRepresentation, opts : { type : IAdaptationType }) {
+  constructor(args : IParsedRepresentation, _opts : { type : IAdaptationType }) {
     this.id = args.id;
     this.bitrate = args.bitrate;
     this.codec = args.codecs;
@@ -124,10 +123,7 @@ class Representation {
     }
 
     this.index = args.index;
-    this.isSupported = opts.type === "audio" ||
-                       opts.type === "video" ?
-      isCodecSupported(this.getMimeTypeString()) :
-      true; // TODO for other types
+    this.isSupported = true;
   }
 
   /**

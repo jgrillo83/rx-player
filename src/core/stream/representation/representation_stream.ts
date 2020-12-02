@@ -304,19 +304,9 @@ export default function RepresentationStream<T>({
                                 priority: getPriorityForTime(period.start, timing) });
         }
       } else {
-        neededSegments = getNeededSegments({ content,
-                                             currentPlaybackTime: timing.position,
-                                             fastSwitchThreshold,
-                                             neededRange,
-                                             segmentBuffer })
-          .map((segment) => ({ priority: getSegmentPriority(segment, timing),
-                               segment }));
-
-        if (neededSegments.length > 0 &&
-            initSegment !== null && initSegmentObject === null)
-        {
+        if (initSegment !== null && initSegmentObject === null) {
           // prepend initialization segment
-          const initSegmentPriority = neededSegments[0].priority;
+          const initSegmentPriority = 0;
           neededSegments = [ { segment: initSegment,
                                priority: initSegmentPriority },
                              ...neededSegments ];

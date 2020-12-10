@@ -50,6 +50,7 @@ export default function generateAudioVideoSegmentParser(
                                                  null >
   ) : IAudioVideoParserObservable {
     const { period, representation, segment } = content;
+    console.time("PARSE_BEGIN " + content.adaptation.type + " " + segment.id);
     const { data, isChunked } = response;
     const appendWindow : [number, number | undefined] = [ period.start, period.end ];
 

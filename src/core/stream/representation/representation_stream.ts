@@ -280,6 +280,7 @@ export default function RepresentationStream<T>({
           neededSegments : IQueuedSegment[];
           shouldRefreshManifest : boolean; }
     {
+      console.time("Clock RS");
       segmentBuffer.synchronizeInventory();
       const neededRange = getWantedRange(period, timing, bufferGoal);
 
@@ -378,10 +379,12 @@ export default function RepresentationStream<T>({
         if (status.terminate.urgent) {
           log.debug("Stream: urgent termination request, terminate.", bufferType);
           startDownloadingQueue$.complete(); // complete the downloading queue
+          console.timeEnd("Clock RS");
           return observableOf(EVENTS.streamTerminating());
         } else if (currentSegmentRequest === null) {
           log.debug("Stream: no request, terminate.", bufferType);
           startDownloadingQueue$.complete(); // complete the downloading queue
+          console.timeEnd("Clock RS");
           return observableOf(EVENTS.streamTerminating());
         } else if (
           mostNeededSegment == null ||
@@ -390,6 +393,7 @@ export default function RepresentationStream<T>({
           log.debug("Stream: cancel request and terminate.", bufferType);
           startDownloadingQueue$.next(); // interrupt the current request
           startDownloadingQueue$.complete(); // complete the downloading queue
+          console.timeEnd("Clock RS");
           return observableOf(EVENTS.streamTerminating());
         } else if (currentSegmentRequest.priority !== mostNeededSegment.priority) {
           const { request$ } = currentSegmentRequest;
@@ -397,6 +401,7 @@ export default function RepresentationStream<T>({
           segmentFetcher.updatePriority(request$, mostNeededSegment.priority);
         }
         log.debug("Stream: terminate after request.", bufferType);
+        console.timeEnd("Clock RS");
         return EMPTY;
       }
 
@@ -419,6 +424,7 @@ export default function RepresentationStream<T>({
         downloadQueue = [];
         startDownloadingQueue$.next(); // (re-)start with an empty queue
 
+        console.timeEnd("Clock RS");
         return observableConcat(
           observableOf(...neededActions),
           status.hasLoadedEverySegments ?
@@ -448,6 +454,7 @@ export default function RepresentationStream<T>({
         downloadQueue = neededSegments.slice().splice(1, neededSegments.length);
       }
 
+      console.timeEnd("Clock RS");
       return observableConcat(observableOf(...neededActions),
                               observableOf(EVENTS.downloadingActive(bufferType)));
     }),

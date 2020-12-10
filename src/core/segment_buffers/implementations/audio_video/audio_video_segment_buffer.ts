@@ -224,6 +224,8 @@ export default class AudioVideoSegmentBuffer extends SegmentBuffer<BufferSource>
     log.debug("AVSB: receiving order to push data to the SourceBuffer",
               this.bufferType,
               infos);
+    console.timeEnd("PARSE_BEGIN " + infos.inventoryInfos?.adaptation.type + " " +
+      infos.inventoryInfos?.segment.id);
     return this._addToQueue({ type: SegmentBufferOperation.Push,
                               value: infos });
   }

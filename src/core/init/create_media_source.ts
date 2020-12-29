@@ -128,6 +128,21 @@ function createMediaSource(
 
     log.info("Init: Creating MediaSource");
     const mediaSource = new MediaSource_();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    (window as any).MEDIA_SOURCE = mediaSource;
+    mediaSource.sourceBuffers.onaddsourcebuffer = function() {
+      log.info("!!!! NEW SOURCE_BUFFER ADDED !!!!");
+    };
+    mediaSource.sourceBuffers.onremovesourcebuffer = function() {
+      log.warn("!!!! SOURCE_BUFFER REMOVED !!!!");
+    };
+    mediaSource.activeSourceBuffers.onaddsourcebuffer = function() {
+      log.info("!!!! NEW ACTIVE SOURCE_BUFFER ADDED !!!!");
+    };
+    mediaSource.activeSourceBuffers.onremovesourcebuffer = function() {
+      log.warn("!!!! ACTIVE SOURCE_BUFFER REMOVED !!!!");
+    };
+
     const objectURL = URL.createObjectURL(mediaSource);
 
     log.info("Init: Attaching MediaSource URL to the media element", objectURL);
@@ -136,6 +151,8 @@ function createMediaSource(
     observer.next(mediaSource);
     return () => {
       resetMediaSource(mediaElement, mediaSource, objectURL);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      (window as any).MEDIA_SOURCE = undefined;
     };
   });
 }

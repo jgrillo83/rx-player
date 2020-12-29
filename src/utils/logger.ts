@@ -67,14 +67,18 @@ export default class Logger {
 
     /* eslint-disable no-invalid-this */
     /* eslint-disable no-console */
-    this.error = (level >= this._levels.ERROR) ? console.error.bind(console) :
-                                                 noop;
-    this.warn = (level >= this._levels.WARNING) ? console.warn.bind(console) :
-                                                  noop;
-    this.info = (level >= this._levels.INFO) ? console.info.bind(console) :
-                                               noop;
-    this.debug = (level >= this._levels.DEBUG) ? console.log.bind(console) :
-                                                 noop;
+    this.error = (level >= this._levels.ERROR) ?
+      (...args) => callLogFunction(console, "error", args) :
+      noop;
+    this.warn = (level >= this._levels.WARNING) ?
+      (...args) => callLogFunction(console, "warn", args) :
+      noop;
+    this.info = (level >= this._levels.INFO) ?
+      (...args) => callLogFunction(console, "info", args) :
+      noop;
+    this.debug = (level >= this._levels.DEBUG) ?
+      (...args) => callLogFunction(console, "log", args) :
+      noop;
     /* eslint-enable no-console */
     /* eslint-enable no-invalid-this */
   }
@@ -84,5 +88,22 @@ export default class Logger {
    */
   public getLevel() : ILoggerLevel {
     return this._currentLevel;
+  }
+}
+
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
+function callLogFunction(
+  consl : Console,
+  method : "error" | "warn" | "info" | "log",
+  args : unknown[]
+) : void {
+  if ((window as any).MEDIA_SOURCE !== undefined) {
+    consl[method](performance.now(),
+                  ...args,
+                  (window as any).MEDIA_SOURCE.sourceBuffers.length,
+                  (window as any).MEDIA_SOURCE.activeSourceBuffers.length);
+  } else {
+    consl[method](performance.now(), ...args);
   }
 }

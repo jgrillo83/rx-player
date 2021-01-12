@@ -134,6 +134,7 @@ export default function EMEManager(
 
   /** Create MediaKeySessions and handle the corresponding events. */
   const bindSession$ = encryptedEvents$.pipe(
+    take(1),
     // Add attached MediaKeys info once available
     mergeMap((encryptedEvt) => attachedMediaKeys$.pipe(
       map((mediaKeysEvt) : [IInitializationDataInfo, IAttachedMediaKeysEvent] =>

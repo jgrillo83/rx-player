@@ -1614,6 +1614,12 @@ class Player extends EventEmitter<IPublicAPIEvent> {
    * @param {Number} btr
    */
   setMinVideoBitrate(btr : number) : void {
+    const maxVideoBitrate = this._priv_bitrateInfos.maxAutoBitrates.video.getValue();
+    if (btr > maxVideoBitrate) {
+      throw new Error("Invalid minimum video bitrate given. " +
+                      `Its value, "${btr}" is superior the current maximum ` +
+                      `video birate, "${maxVideoBitrate}".`);
+    }
     this._priv_bitrateInfos.minAutoBitrates.video.next(btr);
   }
 
@@ -1622,6 +1628,12 @@ class Player extends EventEmitter<IPublicAPIEvent> {
    * @param {Number} btr
    */
   setMinAudioBitrate(btr : number) : void {
+    const maxAudioBitrate = this._priv_bitrateInfos.maxAutoBitrates.audio.getValue();
+    if (btr > maxAudioBitrate) {
+      throw new Error("Invalid minimum audio bitrate given. " +
+                      `Its value, "${btr}" is superior the current maximum ` +
+                      `audio birate, "${maxAudioBitrate}".`);
+    }
     this._priv_bitrateInfos.minAutoBitrates.audio.next(btr);
   }
 
@@ -1630,6 +1642,12 @@ class Player extends EventEmitter<IPublicAPIEvent> {
    * @param {Number} btr
    */
   setMaxVideoBitrate(btr : number) : void {
+    const minVideoBitrate = this._priv_bitrateInfos.minAutoBitrates.video.getValue();
+    if (btr < minVideoBitrate) {
+      throw new Error("Invalid maximum video bitrate given. " +
+                      `Its value, "${btr}" is inferior the current minimum ` +
+                      `video birate, "${minVideoBitrate}".`);
+    }
     this._priv_bitrateInfos.maxAutoBitrates.video.next(btr);
   }
 
@@ -1638,6 +1656,12 @@ class Player extends EventEmitter<IPublicAPIEvent> {
    * @param {Number} btr
    */
   setMaxAudioBitrate(btr : number) : void {
+    const minAudioBitrate = this._priv_bitrateInfos.minAutoBitrates.audio.getValue();
+    if (btr < minAudioBitrate) {
+      throw new Error("Invalid maximum audio bitrate given. " +
+                      `Its value, "${btr}" is inferior the current minimum ` +
+                      `audio birate, "${minAudioBitrate}".`);
+    }
     this._priv_bitrateInfos.maxAutoBitrates.audio.next(btr);
   }
 

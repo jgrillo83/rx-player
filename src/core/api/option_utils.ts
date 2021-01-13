@@ -49,6 +49,7 @@ const { DEFAULT_AUTO_PLAY,
         DEFAULT_LIMIT_VIDEO_WIDTH,
         DEFAULT_MANUAL_BITRATE_SWITCHING_MODE,
         DEFAULT_AUDIO_TRACK_SWITCHING_MODE,
+        DEFAULT_MIN_BITRATES,
         DEFAULT_MAX_BITRATES,
         DEFAULT_MAX_BUFFER_AHEAD,
         DEFAULT_MAX_BUFFER_BEHIND,
@@ -205,6 +206,8 @@ export interface IConstructorOptions { maxBufferAhead? : number;
                                        videoElement? : HTMLMediaElement;
                                        initialVideoBitrate? : number;
                                        initialAudioBitrate? : number;
+                                       minAudioBitrate? : number;
+                                       minVideoBitrate? : number;
                                        maxAudioBitrate? : number;
                                        maxVideoBitrate? : number;
                                        stopAtEnd? : boolean; }
@@ -226,6 +229,8 @@ export interface IParsedConstructorOptions {
   videoElement : HTMLMediaElement;
   initialVideoBitrate : number;
   initialAudioBitrate : number;
+  minAudioBitrate : number;
+  minVideoBitrate : number;
   maxAudioBitrate : number;
   maxVideoBitrate : number;
   stopAtEnd : boolean;
@@ -332,6 +337,8 @@ function parseConstructorOptions(
   let videoElement : HTMLMediaElement;
   let initialVideoBitrate : number;
   let initialAudioBitrate : number;
+  let minAudioBitrate : number;
+  let minVideoBitrate : number;
   let maxAudioBitrate : number;
   let maxVideoBitrate : number;
 
@@ -453,6 +460,24 @@ function parseConstructorOptions(
     }
   }
 
+  if (isNullOrUndefined(options.minVideoBitrate)) {
+    minVideoBitrate = DEFAULT_MIN_BITRATES.video;
+  } else {
+    minVideoBitrate = Number(options.minVideoBitrate);
+    if (isNaN(minVideoBitrate)) {
+      throw new Error("Invalid maxVideoBitrate parameter. Should be a number.");
+    }
+  }
+
+  if (isNullOrUndefined(options.minAudioBitrate)) {
+    minAudioBitrate = DEFAULT_MIN_BITRATES.audio;
+  } else {
+    minAudioBitrate = Number(options.minAudioBitrate);
+    if (isNaN(minAudioBitrate)) {
+      throw new Error("Invalid minAudioBitrate parameter. Should be a number.");
+    }
+  }
+
   if (isNullOrUndefined(options.maxVideoBitrate)) {
     maxVideoBitrate = DEFAULT_MAX_BITRATES.video;
   } else {
@@ -486,6 +511,8 @@ function parseConstructorOptions(
            preferredVideoTracks,
            initialAudioBitrate,
            initialVideoBitrate,
+           minAudioBitrate,
+           minVideoBitrate,
            maxAudioBitrate,
            maxVideoBitrate,
            stopAtEnd };

@@ -1373,7 +1373,7 @@ class Player extends EventEmitter<IPublicAPIEvent> {
   }
 
   /**
-   * Returns max wanted video bitrate currently set.
+   * Returns minimum wanted video bitrate currently set.
    * @returns {Number}
    */
   getMinVideoBitrate() : number {
@@ -1381,7 +1381,7 @@ class Player extends EventEmitter<IPublicAPIEvent> {
   }
 
   /**
-   * Returns max wanted audio bitrate currently set.
+   * Returns minimum wanted audio bitrate currently set.
    * @returns {Number}
    */
   getMinAudioBitrate() : number {
@@ -1389,7 +1389,7 @@ class Player extends EventEmitter<IPublicAPIEvent> {
   }
 
   /**
-   * Returns max wanted video bitrate currently set.
+   * Returns maximum wanted video bitrate currently set.
    * @returns {Number}
    */
   getMaxVideoBitrate() : number {
@@ -1397,7 +1397,7 @@ class Player extends EventEmitter<IPublicAPIEvent> {
   }
 
   /**
-   * Returns max wanted audio bitrate currently set.
+   * Returns maximum wanted audio bitrate currently set.
    * @returns {Number}
    */
   getMaxAudioBitrate() : number {
@@ -1610,7 +1610,7 @@ class Player extends EventEmitter<IPublicAPIEvent> {
   }
 
   /**
-   * Update the maximum video bitrate the user can switch to.
+   * Update the minimum video bitrate the user can switch to.
    * @param {Number} btr
    */
   setMinVideoBitrate(btr : number) : void {
@@ -1618,7 +1618,7 @@ class Player extends EventEmitter<IPublicAPIEvent> {
   }
 
   /**
-   * Update the maximum audio bitrate the user can switch to.
+   * Update the minimum audio bitrate the user can switch to.
    * @param {Number} btr
    */
   setMinAudioBitrate(btr : number) : void {

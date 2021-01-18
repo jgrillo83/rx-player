@@ -7,6 +7,7 @@
   - Add the `reload` method to be able to re-load the last loaded content as fast as possible (e.g. after fatal errors) [#859, #867]
   - Add `onCodecSwitch` loadVideo option, to select a strategy when a new incompatible codec is encountered [#856]
   - Emit `DISCONTINUITY_ENCOUNTERED` warnings when a discontinuity has been seeked over [#862]
+  - Add minAudioBitrate and minVideoBitrate constructor options and the {set,get}Minimum{Audio,Video}Bitrate methods to define the minimum quality reachable through adaptive streaming [#876]
   - Add the experimental `VideoThumbnailLoader` tool, which uses "trickmodes" DASH AdaptationSet to generate video thumbnails [#647]
 
 ### Bug fixes
@@ -23,7 +24,6 @@
   - Skip over most audio or video discontinuities in the stream, even those not anounced in the Manifest [#862]
   - When track or bitrate switching lead to a reload, seek back a consistent number of milliseconds to give back context [#848]
   - Don't call `setServerCertificate` API when `keySystems[].serverCertificate` option is set to `null` [#849]
-  - Create temporary MediaKeySession if a persistent one fails to be created (option?)? [#871]
   - On the rare platforms where an undefined initialization data type can be received on encrypted events, retry `generateRequest` with a default "cenc" value if the first one fails due to it being empty [#870]
   - Re-add debug logs logging the principal media properties at each clock tick [#844]
   - Use TextEncoder and TextDecoder interfaces when available to speed-up string conversions [#843, #875]
